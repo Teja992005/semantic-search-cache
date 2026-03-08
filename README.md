@@ -2,52 +2,50 @@
 
 ## Overview
 
-This project implements a lightweight **semantic search system** built on the **20 Newsgroups dataset**.
-The system enables users to query documents using natural language and retrieves semantically similar posts.
+This project implements a lightweight **semantic search system** built using the **20 Newsgroups dataset**.
+The system allows users to search documents using natural language and retrieves semantically similar posts.
 
-The solution combines:
+The system combines:
 
 * Transformer-based **text embeddings**
-* **FAISS vector database** for similarity search
-* **Fuzzy clustering** for overlapping topic discovery
-* A **custom semantic cache** to avoid redundant computations
-* A **FastAPI service** to expose the system as an API
+* **FAISS vector database** for semantic similarity search
+* **Fuzzy clustering** to model overlapping topics
+* A custom **semantic cache** to avoid redundant computations
+* A **FastAPI service** that exposes the system through REST APIs
 
-The project demonstrates how modern AI-powered search systems are designed.
+This project demonstrates the architecture of a modern **AI-powered semantic retrieval system**.
 
 ---
 
 # System Architecture
 
-```
 User Query
-    ↓
+↓
 Query Embedding (Sentence Transformer)
-    ↓
+↓
 Semantic Cache Lookup
-    ↓
+↓
 Cache Hit → Return Cached Result
-    ↓
+↓
 Cache Miss
-    ↓
+↓
 Vector Search (FAISS)
-    ↓
-Retrieve Most Similar Document
-    ↓
+↓
+Retrieve Similar Document
+↓
 Determine Dominant Cluster
-    ↓
+↓
 Store Result in Cache
-    ↓
-Return Response
-```
+↓
+Return API Response
 
 ---
 
 # Dataset
 
-This project uses the **Twenty Newsgroups Dataset**.
+The system uses the **Twenty Newsgroups Dataset** which contains approximately **20,000 documents across 20 categories**.
 
-The dataset contains approximately **20,000 documents** distributed across **20 topic categories** including:
+Example topics include:
 
 * computers
 * science
@@ -67,13 +65,17 @@ To reduce noise, the following elements are removed:
 * quotes
 * signatures
 
+This ensures the system focuses only on the **semantic content of each document**.
+
 ---
 
 # Key Components
 
 ## 1. Embedding Model
 
-Text documents and queries are converted into vector representations using:
+Documents and queries are converted into vector embeddings using the **Sentence Transformers MiniLM model**.
+
+Model used:
 
 ```
 sentence-transformers/all-MiniLM-L6-v2
@@ -82,39 +84,40 @@ sentence-transformers/all-MiniLM-L6-v2
 Features:
 
 * 384-dimensional embeddings
-* optimized for semantic similarity tasks
-* lightweight and fast
+* optimized for semantic similarity
+* lightweight and efficient
 
 ---
 
-## 2. Vector Database
+## 2. Vector Database (FAISS)
 
-The document embeddings are stored in a **FAISS index**.
+Document embeddings are stored in a **FAISS index**, which enables fast similarity search.
 
-FAISS enables:
+FAISS provides:
 
-* fast nearest neighbor search
-* scalable similarity retrieval
-* efficient vector indexing
+* efficient nearest neighbor search
+* scalable vector indexing
+* high performance retrieval
 
 ---
 
 ## 3. Fuzzy Clustering
 
-Instead of assigning each document to a single cluster, **Fuzzy C-Means clustering** is used.
+Instead of assigning each document to a single cluster, the system uses **Fuzzy C-Means clustering**.
 
-Each document belongs to multiple clusters with different membership probabilities.
+This allows documents to belong to **multiple clusters with different membership probabilities**.
 
 Example:
 
 ```
-Document:
+Document Membership
+
 Cluster 2 → 0.52
 Cluster 5 → 0.33
 Cluster 7 → 0.15
 ```
 
-This better reflects the **overlapping semantic structure** of the dataset.
+This better represents the **overlapping semantic nature of real-world topics**.
 
 ---
 
@@ -122,23 +125,31 @@ This better reflects the **overlapping semantic structure** of the dataset.
 
 Traditional caching only works when queries are identical.
 
-This system implements a **semantic cache** that detects similar queries using cosine similarity between embeddings.
+This system introduces a **semantic cache** that detects similar queries using **cosine similarity between embeddings**.
 
 Example:
 
+Query 1
+
 ```
-Query 1: "space shuttle launch"
-Query 2: "how does the space shuttle launch"
+space shuttle launch
+```
+
+Query 2
+
+```
+how does the space shuttle launch
 ```
 
 Even though the wording differs, the semantic meaning is similar.
 
 If similarity exceeds a threshold, the cached result is returned.
 
-This reduces:
+Benefits:
 
-* redundant computation
-* query latency
+* reduces redundant computation
+* decreases query latency
+* improves system efficiency
 
 ---
 
@@ -183,7 +194,7 @@ If a similar query exists in the cache:
 
 ## GET `/cache/stats`
 
-Returns cache statistics.
+Returns current cache statistics.
 
 Example:
 
@@ -206,7 +217,7 @@ Clears all cached entries.
 
 # Installation
 
-## 1. Clone Repository
+## Clone Repository
 
 ```
 git clone https://github.com/yourusername/semantic-search-cache.git
@@ -215,13 +226,13 @@ cd semantic-search-cache
 
 ---
 
-## 2. Create Virtual Environment
+## Create Virtual Environment
 
 ```
 python -m venv venv
 ```
 
-Activate environment:
+Activate environment
 
 Windows
 
@@ -237,7 +248,7 @@ source venv/bin/activate
 
 ---
 
-## 3. Install Dependencies
+## Install Dependencies
 
 ```
 pip install -r requirements.txt
@@ -259,6 +270,34 @@ Open the API documentation:
 http://127.0.0.1:8000/docs
 ```
 
+This interface allows you to test the API endpoints.
+
+---
+
+# Docker Support
+
+The application can also be run using **Docker** to ensure a consistent runtime environment.
+
+## Build Docker Image
+
+```
+docker build -t semantic-search-system .
+```
+
+## Run Docker Container
+
+```
+docker run -p 8000:8000 semantic-search-system
+```
+
+After starting the container, open:
+
+```
+http://localhost:8000/docs
+```
+
+This will open the FastAPI Swagger interface.
+
 ---
 
 # Technologies Used
@@ -268,14 +307,15 @@ http://127.0.0.1:8000/docs
 * Sentence Transformers
 * FAISS
 * Scikit-learn
-* Scikit-Fuzzy
+* Scikit-fuzzy
 * NumPy
+* Docker
 
 ---
 
-# Possible Improvements
+# Future Improvements
 
-Future improvements could include:
+Possible improvements include:
 
 * persistent cache storage
 * cluster visualization
