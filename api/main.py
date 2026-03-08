@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import os
+import numpy as np
 
 from data.dataset_loader import load_dataset
 from embeddings.embedder import Embedder
@@ -21,11 +23,26 @@ print("Loading dataset...")
 documents = load_dataset()
 print(f"Loaded {len(documents)} documents")
 
+
 print("Loading embedding model...")
 embedder = Embedder()
 
-print("Generating document embeddings...")
-embeddings = embedder.embed_documents(documents)
+storage_folder = "storage"
+embedding_file = os.path.join(storage_folder, "embeddings.npy")
+
+if not os.path.exists(storage_folder):
+    os.makedirs(storage_folder)
+
+if os.path.exists(embedding_file):
+    print("Loading saved embeddings from disk...")
+    embeddings = np.load(embedding_file)
+
+else:
+    print("Generating document embeddings...")
+    embeddings = embedder.embed_documents(documents)
+
+    print("Saving embeddings to disk...")
+    np.save(embedding_file, embeddings)
 
 print("Building FAISS vector index...")
 vector_store = FAISSStore(embeddings, documents)
@@ -39,17 +56,18 @@ cache = SemanticCache(threshold=0.8)
 print("System ready. API is live.")
 
 
+
 @app.post("/query")
 def query_system(request: QueryRequest):
 
     query = request.query
     print(f"Received query: {query}")
+
     query_embedding = embedder.embed_query(query)
 
     cached, similarity = cache.lookup(query_embedding)
 
     if cached:
-
         return {
             "query": query,
             "cache_hit": True,
@@ -76,12 +94,10 @@ def query_system(request: QueryRequest):
         "dominant_cluster": cluster_id
     }
 
-
 @app.get("/cache/stats")
 def cache_stats():
 
     return cache.stats()
-
 
 @app.delete("/cache")
 def clear_cache():
