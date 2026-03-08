@@ -15,32 +15,35 @@ class QueryRequest(BaseModel):
     query: str
 
 
-print("Initializing system...")
+print("Starting Semantic Search System...")
 
-# Load dataset
+print("Loading dataset...")
 documents = load_dataset()
+print(f"Loaded {len(documents)} documents")
 
-# Create embedder
+print("Loading embedding model...")
 embedder = Embedder()
 
-# Create embeddings
+print("Generating document embeddings...")
 embeddings = embedder.embed_documents(documents)
 
-# Vector store
+print("Building FAISS vector index...")
 vector_store = FAISSStore(embeddings, documents)
 
-# Clustering
+print("Running fuzzy clustering...")
 cluster_model = FuzzyCluster(embeddings, n_clusters=10)
 
-# Cache
+print("Initializing semantic cache...")
 cache = SemanticCache(threshold=0.8)
+
+print("System ready. API is live.")
 
 
 @app.post("/query")
 def query_system(request: QueryRequest):
 
     query = request.query
-
+    print(f"Received query: {query}")
     query_embedding = embedder.embed_query(query)
 
     cached, similarity = cache.lookup(query_embedding)
